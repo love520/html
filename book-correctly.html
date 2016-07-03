@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<script src="js/vue.js" type="text/javascript"></script>
+	<script src="js/jquery-1.10.1.min.js" type="text/javascript"></script>
+	<script src="js/bootstrap.min.js" type="text/javascript"></script>
+	<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+</head>
+
+<body>
+	<div class="container">
+		<div class="col-md-6 col-md-offset-3">
+			<h1>Vue demo</h1>
+			<div id="app">
+				<table class="table table-hover" v-cloak>
+					<thead>
+						<tr>
+							<th class="text-right" @click="sortBy('id')">序号</th>
+							<th class="text-right" @click="sortBy('name')">书名</th>
+							<th class="text-right" @click="sortBy('author')">作者</th>
+							<th class="text-right" @click="sortBy('price')">价格</th>
+							<th class="text-right">操作</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr v-for="book in books | orderBy sortparam">
+							<td class="text-right">{{book.id}}</td>
+							<td class="text-right">{{book.name}}</td>
+							<td class="text-right">{{book.author}}</td>
+							<td class="text-right">{{book.price}}</td>
+							<template v-if="book.id%2==0">
+								<td class="text-right">
+									<button type="button" class="btn btn-success" @click="delBook(book)">删除</button>
+									<button type="button" class="btn btn-success" data-toggle="modal" data-target="#myModal" @click="editBook(book)">编辑</button>
+								</td>
+							</template>
+							<template v-else>
+								<td class="text-right">
+									<button type="button" class="btn btn-danger"  @click="delBook(book)">删除</button>
+									<button type="button" class="btn btn-danger" data-toggle="modal" data-target="#myModal" @click="editBook(book)">编辑</button>
+								</td>
+							</template>
+						</tr>
+						<tr>
+							<td class="text-right" colspan="6">
+								<h4>总价:{{sum}}</h4></td>
+						</tr>
+					</tbody>
+				</table>
+				<div id="add-book">
+					<legend>添加书籍</legend>
+					<div class="form-group">
+						<label for="">书名</label>
+						<input type="text" class="form-control" v-model="book.name">
+					</div>
+					<div class="form-group">
+						<label for="">作者</label>
+						<input type="text" class="form-control" v-model="book.author">
+					</div>
+					<div class="form-group">
+						<label for="">价格</label>
+						<input type="text" class="form-control" v-model="book.price">
+					</div>
+					<button class="btn btn-primary btn-block" v-on:click="addBook()">添加</button>
+				</div>
+				<br>
+
+				<!-- 模态框（Modal）编辑书籍 -->
+				<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+					<div class="modal-dialog">
+						<div class="modal-content">
+							<div class="modal-header">
+								<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+									&times;
+								</button>
+								<h4 class="modal-title" id="myModalLabel">
+              编辑书籍
+            </h4>
+							</div>
+							<div class="modal-body">
+								<div class="form-group">
+									<input type="hidden" class="form-control" v-model="editInfor.id">
+									<label for="">书名</label>
+									<input type="text" class="form-control" v-model="editInfor.name">
+								</div>
+								<div class="form-group">
+									<label for="">作者</label>
+									<input type="text" class="form-control" v-model="editInfor.author">
+								</div>
+								<div class="form-group">
+									<label for="">价格</label>
+									<input type="text" class="form-control" v-model="editInfor.price">
+								</div>
+							</div>
+							<div class="modal-footer">
+								<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+								<button type="button" class="btn btn-primary" v-on:click="saveBook()">保存</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+
+	<script>
+		new Vue({
+			el: '#app',
+			/** ready: function() {
+			     this.$http.get('https://api.myjson.com/bins/r8mm', function(data) {
+			         this.$set('books', data);
+			     }).error(function(data, status, request) {
+			         console.log('fail' + status + "," + request);
+			     })
+			 },**/
+			data: {
+				sortparam: '',
+				book: {
+					id: '',
+					author: '',
+					name: '',
+					price: ''
+				},
+				editInfor: {
+						id:'',
+						author: '',
+						name: '',
+						price: ''
+				},
+				books: [{
+					id: 1,
+					author: '曹雪芹',
+					name: '红楼梦',
+					price: 32.0
+				}, {
+					id: 2,
+					author: '施耐庵',
+					name: '水浒传',
+					price: 30.0
+				}, {
+					id: 3,
+					author: '罗贯中',
+					name: '三国演义',
+					price: 52.0
+				}, {
+					id: 4,
+					author: '吴承恩',
+					name: '西游记',
+					price: 36.0
+				}]
+			},
+			computed: {
+				sum: function() {
+					var result = 0;
+					for (var i = 0; i < this.books.length; i++) {
+						result = Number(this.books[i].price) + result;
+					};
+					return result;
+				}
+			},
+
+			methods: {
+				addBook: function() {
+					this.book.id = this.books.length + 1;
+					this.books.push(this.book);
+					this.book = '';
+				},
+				editBook: function(book){
+					this.editInfor.id = book.id;
+					this.editInfor.author = book.author;
+					this.editInfor.name = book.name;
+					this.editInfor.price = book.price;
+				},
+				saveBook: function() {
+					for (var i in this.books) {
+						if (this.editInfor.id == this.books[i].id) {
+							this.books[i].author = this.editInfor.author;
+							this.books[i].name = this.editInfor.name;
+							this.books[i].price = this.editInfor.price;
+						}
+					}
+					$('#myModal').modal('hide');
+				},
+				delBook: function(book) {
+					this.books.$remove(book);
+				},
+				sortBy: function(sortparam) {
+					this.sortparam = sortparam;
+				}
+			}
+		});
+	</script>
+</body>
+
+</html>
